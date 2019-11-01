@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add product</title>
+    <link rel="stylesheet" href="https://bootswatch.com/4/darkly/bootstrap.min.css">
+</head>
+
+<body>
+    <form class="p-4">
+        <div class="form-group">
+            <input type="text" name="name" id="name" class="form-control" placeholder="Product Name" autofocus>
+        </div>
+        <div class="form-group">
+            <input type="text" name="price" id="price" class="form-control" placeholder="Product price">
+        </div>
+        <div class="form-group">
+            <input type="text" name="desc" id="desc" class="form-control" placeholder="Description">
+        </div>
+        <button type="submit" name="submit" id="submit" class="btn btn-primary btn-block">Create</button>
+    </form>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const typeorm = require("typeorm");
+
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', e => {
+            const name = document.querySelector('#name').value;
+            const price = document.querySelector('#price').value;
+            const desc = document.querySelector('#desc').value;
+
+            const newProduct = { name, price, desc };
+
+            typeorm.createConnection().then(async connection => {
+                await connection.getRepository("Product").save(newProduct);
+                ipcRenderer.send('product:new', newProduct);
+            });
+
+            e.preventDefault();
+        });
+    </script>
+</body>
+
+</html>

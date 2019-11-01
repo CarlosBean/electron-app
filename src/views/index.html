@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Electron App</title>
+</head>
+
+<link rel="stylesheet" href="https://bootswatch.com/4/darkly/bootstrap.min.css">
+
+<body>
+    <div class="container p-4">
+        <h3>Product List</h3>
+        <div class="row" id="products"></div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const products = document.querySelector('products');
+
+        const { createConnection } = require('typeorm');
+
+        createConnection().then(async connection => {
+            const products = await connection.getRepository("Product").find();
+            console.log("Products: ", products);
+        });
+
+        ipcRenderer.on('product:new', (e, newProduct) => {
+            const newProductTemplate = `
+                <div class="col-4 p-2">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">${newProduct.name}</h4>
+                            <p>${newProduct.price}</p>
+                            <p>${newProduct.desc}</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-block btn-danger">Delete</button>    
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            this.products.innerHTML += newProductTemplate;
+            const btns = document.querySelectorAll('.btn.btn-danger');
+            btns.forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.target.parentElement.parentElement.parentElement.remove();
+                })
+            });
+
+        });
+
+        ipcRenderer.on('products:remove-all', (e) => {
+            this.products.innerHTML = '';
+        });
+    </script>
+
+</body>
+
+</html>
